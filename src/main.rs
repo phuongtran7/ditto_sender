@@ -34,7 +34,6 @@ fn main() {
 
     let address = matches.value_of("address").unwrap();
     let topic = matches.value_of("topic").unwrap();
-    let clone_topic = topic.to_owned();
 
     // Create the client.
     let create_opts = mqtt::CreateOptionsBuilder::new()
@@ -60,6 +59,8 @@ fn main() {
         // Make the connection to the broker
         println!("Connecting to the MQTT server...");
         cli.connect(conn_opts).await?;
+
+        let clone_topic = topic.to_owned();
 
         println!("Connected to {:?}. Sending data...", clone_topic);
 
