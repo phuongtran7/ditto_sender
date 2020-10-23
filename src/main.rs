@@ -82,7 +82,7 @@ fn main() {
                 let msg = mqtt::Message::new(&clone_topic, data, mqtt::QOS_0);
                 match cli.publish(msg).wait() {
                     Ok(()) => {}
-                    Err(error) => println!("Error {:?}.", error),
+                    Err(error) => eprintln!("Error {:?}.", error),
                 };
                 count += 1.0;
                 builder.reset();
@@ -101,7 +101,7 @@ fn main() {
         running.store(false, Ordering::Relaxed);
         match handle.join() {
             Ok(()) => {}
-            Err(error) => println!("Error {:?}.", error),
+            Err(error) => eprintln!("Error {:?}.", error),
         };
         // Explicit return type for the async block
         Ok::<(), mqtt::Error>(())
