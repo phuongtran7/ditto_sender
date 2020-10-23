@@ -1,0 +1,15 @@
+[package]
+name = "ditto_sender"
+version = "0.1.0"
+authors = ["Phuong"]
+edition = "2018"
+
+[dependencies]
+flexbuffers = "0.1.1"
+futures = "0.3.6"
+clap = "3.0.0-beta.2"
+
+[dependencies.paho-mqtt]
+path = "D:/Projects/paho.mqtt.rust"
+default-features = false
+features = ["bundled"]
