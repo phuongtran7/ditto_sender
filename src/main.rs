@@ -39,7 +39,7 @@ fn main() {
         .finalize();
 
     // Create the client connection
-    let mut cli = mqtt::AsyncClient::new(create_opts).unwrap_or_else(|e| {
+    let cli = mqtt::AsyncClient::new(create_opts).unwrap_or_else(|e| {
         println!("Error creating the client: {:?}", e);
         process::exit(1);
     });
@@ -54,6 +54,8 @@ fn main() {
         // Make the connection to the broker
         println!("Connecting to the MQTT server...");
         cli.connect(conn_opts).await?;
+
+        println!("Connected. Sending data...");
 
         let mut count = 0.0;
         let mut builder = Builder::default();
