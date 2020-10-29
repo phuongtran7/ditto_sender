@@ -60,53 +60,55 @@ fn main() {
         println!("Connecting to the MQTT server...");
         cli.connect(conn_opts).await?;
 
-        let clone_topic = topic.to_owned();
-
-        println!("Connected to {:?}. Sending data...", clone_topic);
-
-        let mut count = 0.0;
-        let mut builder = Builder::default();
-
-        let shared = Arc::clone(&running);
-        let handle = thread::spawn(move || loop {
-            if shared.load(Ordering::Relaxed) == true {
-                let mut map_start = builder.start_map();
-                map_start.push(
-                    "nav_frequency_hz",
-                    &[count + 1.0, count + 2.0, count + 3.0, count + 4.0],
-                );
-
-                map_start.end_map();
-
-                let data = builder.view();
-
-                let msg = mqtt::Message::new(&clone_topic, data, mqtt::QOS_0);
-                match cli.publish(msg).wait() {
-                    Ok(()) => {}
-                    Err(error) => eprintln!("Error {:?}.", error),
-                };
-                count += 1.0;
-                builder.reset();
-                thread::sleep(Duration::from_millis(1000));
-            } else {
-                println!("Stoped...");
-                if cli.is_connected() {
-                    cli.unsubscribe(clone_topic);
-                    cli.disconnect(None);
-                }
-                break;
-            }
-        });
-
-        io::stdin().read_line(&mut String::new()).unwrap();
-        running.store(false, Ordering::Relaxed);
-        match handle.join() {
-            Ok(()) => {}
-            Err(error) => eprintln!("Error {:?}.", error),
-        };
         // Explicit return type for the async block
         Ok::<(), mqtt::Error>(())
     }) {
         eprintln!("{}", err);
+        process::exit(1);
     }
+
+    let clone_topic = topic.to_owned();
+
+    println!("Connected to {:?}. Sending data...", topic);
+
+    let mut count = 0.0;
+    let mut builder = Builder::default();
+
+    let shared = Arc::clone(&running);
+    let handle = thread::spawn(move || loop {
+        if shared.load(Ordering::Relaxed) == true {
+            let mut map_start = builder.start_map();
+            map_start.push(
+                "nav_frequency_hz",
+                &[count + 1.0, count + 2.0, count + 3.0, count + 4.0],
+            );
+
+            map_start.end_map();
+
+            let data = builder.view();
+
+            let msg = mqtt::Message::new(&clone_topic, data, mqtt::QOS_0);
+            match cli.publish(msg).wait() {
+                Ok(()) => {}
+                Err(error) => eprintln!("Error {:?}.", error),
+            };
+            count += 1.0;
+            builder.reset();
+            thread::sleep(Duration::from_millis(1000));
+        } else {
+            println!("Stoped...");
+            if cli.is_connected() {
+                cli.unsubscribe(clone_topic);
+                cli.disconnect(None);
+            }
+            break;
+        }
+    });
+
+    io::stdin().read_line(&mut String::new()).unwrap();
+    running.store(false, Ordering::Relaxed);
+    match handle.join() {
+        Ok(()) => {}
+        Err(error) => eprintln!("Error {:?}.", error),
+    };
 }
